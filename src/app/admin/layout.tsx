@@ -65,7 +65,13 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
                 </nav>
 
                 <div className="p-4 border-t border-gray-100">
-                    <button className="flex items-center gap-3 w-full p-3 rounded-xl hover:bg-red-50 text-red-600 transition-colors">
+                    <button
+                        onClick={() => {
+                            // Se houvesse cookies, removeríamos document.cookie = "...; max-age=0";
+                            window.location.href = "/admin/login";
+                        }}
+                        className="flex items-center gap-3 w-full p-3 rounded-xl hover:bg-red-50 text-red-600 transition-colors"
+                    >
                         <LogOut size={20} />
                         {sidebarOpen && <span>Sair</span>}
                     </button>

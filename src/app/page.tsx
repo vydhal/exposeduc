@@ -353,10 +353,13 @@ export default function Home() {
         {/* FOOTER */}
         <footer className="py-20 px-12 border-t border-white/5 text-gray-500 font-medium text-xs flex flex-col md:flex-row justify-between items-center gap-8 bg-black">
           <p className="uppercase tracking-widest">© 2026 EXPOEDUC - Secretaria de Tecnologia e Educação Digital</p>
-          <div className="flex gap-12 uppercase tracking-[0.2em]">
+          <div className="flex gap-12 uppercase tracking-[0.2em] items-center flex-wrap justify-center">
             <a href="#" className="hover:text-brand transition-colors">Institucional</a>
             <a href="#" className="hover:text-brand transition-colors">Transparência</a>
             <a href="#" className="hover:text-brand transition-colors">Privacidade</a>
+            <a href="/admin/login" className="px-4 py-2 border border-white/10 rounded-full hover:bg-brand hover:border-brand hover:text-white transition-all text-[10px] font-bold">
+              Acesso Restrito
+            </a>
           </div>
         </footer>
       </main>

@@ -1,0 +1,83 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = "file:./dev.db"
+}
+
+model AdminUser {
+  id        String   @id @default(cuid())
+  email     String   @unique
+  password  String
+  name      String?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model Project {
+  id            String   @id @default(cuid())
+  title         String
+  slug          String   @unique
+  summary       String
+  content       String
+  coverImage    String
+  gallery       String   // JSON stringified array
+  status        String   @default("DRAFT") // DRAFT, PUBLISHED
+  featured      Boolean  @default(false)
+  order         Int      @default(0)
+  
+  executionMonth String?  // Ex: "Janeiro"
+  executionYear  Int?     // Ex: 2024
+  
+  category      Category @relation(fields: [categoryId], references: [id])
+  categoryId    String
+  
+  tags          Tag[]
+  metrics       Metric[]
+  
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+}
+
+model Category {
+  id       String    @id @default(cuid())
+  name     String    @unique
+  projects Project[]
+}
+
+model Tag {
+  id       String    @id @default(cuid())
+  name     String    @unique
+  projects Project[]
+}
+
+model Metric {
+  id        String   @id @default(cuid())
+  label     String
+  value     String
+  icon      String?
+  project   Project  @relation(fields: [projectId], references: [id])
+  projectId String
+}
+model SiteSettings {
+  id             String   @id @default("default")
+  siteName       String   @default("EXPOEDUC")
+  heroSlogan     String   @default("O futuro da educação pública reimaginado através da inovação, tecnologia e criatividade.")
+  heroBackground String   @default("https://images.unsplash.com/photo-1451187580459-43490279c0fa?q=80&w=2000")
+  primaryColor   String   @default("#2563eb")
+  logoUrl        String?
+  faviconUrl     String?
+  
+  instagramUrl   String?
+  linkedinUrl    String?
+  facebookUrl    String?
+  whatsappUrl    String?
+  
+  ctaTitle       String   @default("VAMOS INOVAR?")
+  ctaButtonText  String   @default("PROJETAR O FUTURO")
+  ctaButtonLink  String?  
+  
+  updatedAt      DateTime @updatedAt
+}

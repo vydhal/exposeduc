@@ -10,6 +10,8 @@ services:
       - NODE_ENV=production
     depends_on:
       - exposeduc_db
+    volumes:
+      - exposeduc_uploads:/app/public/uploads
     networks:
       - SimpliSoft # Para falar com o Traefik (Rede Externa)
       - interna_network_expo # Para falar com o Postgres (Rede Interna)
@@ -52,6 +54,7 @@ services:
 
 volumes:
   exposeduc_postgres_data:
+  exposeduc_uploads:
 
 
 networks:

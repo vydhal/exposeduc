@@ -39,7 +39,7 @@ RUN adduser --system --uid 1001 nextjs
 # Instala prisma globalmente para podermos rodar as migrações em produção
 RUN npm install -g prisma@5.22.0
 
-COPY --from=builder /app/public ./public
+COPY --from=builder --chown=nextjs:nodejs /app/public ./public
 
 # Set the correct permission for prerender cache
 RUN mkdir .next

@@ -14,9 +14,14 @@ const geistMono = Geist_Mono({
 });
 
 export async function generateMetadata(): Promise<Metadata> {
-  const settings = await prisma.siteSettings.findUnique({
-    where: { id: "default" }
-  });
+  let settings = null;
+  try {
+    settings = await prisma.siteSettings.findUnique({
+      where: { id: "default" }
+    });
+  } catch (error) {
+    console.warn("Could not fetch site settings during build.", error);
+  }
 
   return {
     title: settings?.siteName || "EXPOEDUC",

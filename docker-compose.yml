@@ -1,48 +1,64 @@
 version: '3.8'
 
 services:
+  # 1. Aplicação Next.js Full Stack (Frontend + API)
   app:
-    build:
-      context: .
-      dockerfile: Dockerfile
-    image: exposeduc-app
-    restart: always
-    ports:
-      - "3000:3000"
+    image: vydhal/exposeduc-app:latest
     environment:
-      - DATABASE_URL=postgresql://${POSTGRES_USER}:${POSTGRES_PASSWORD}@db:5432/${POSTGRES_DB}?schema=public
+      # Conecta ao Postgres usando o nome do serviço na rede interna
+      - DATABASE_URL=postgresql://${POSTGRES_USER}:${POSTGRES_PASSWORD}@exposeduc_db:5432/${POSTGRES_DB}?schema=public
       - NODE_ENV=production
     depends_on:
-      db:
-        condition: service_healthy
-    command: >
-      sh -c "npx prisma migrate deploy && node server.js"
+      - exposeduc_db
     networks:
-      - exposeduc-network
+      - SimpliSoft # Para falar com o Traefik (Rede Externa)
+      - interna_network_expo # Para falar com o Postgres (Rede Interna)
+    deploy:
+      replicas: 1
+      restart_policy:
+        condition: on-failure
+      labels:
+        - "traefik.enable=true"
+        # Define a rede que o Traefik deve usar para alcançar este container
+        - "traefik.docker.network=SimpliSoft"
+        # Rota Principal da Aplicação (Frontend e API do Next rodam na mesma porta)
+        - "traefik.http.routers.exposeduc-app.rule=Host(`exposeduc.simplisoft.com.br`)" # TROQUE PELO SEU DOMÍNIO REAL
+        - "traefik.http.routers.exposeduc-app.entrypoints=websecure"
+        - "traefik.http.routers.exposeduc-app.tls.certresolver=letsencryptresolver"
+        - "traefik.http.services.exposeduc-app.loadbalancer.server.port=3000"
 
-  db:
+  # 2. Banco de Dados
+  exposeduc_db:
     image: postgres:15-alpine
-    restart: always
     environment:
-      POSTGRES_USER: ${POSTGRES_USER:-admin}
-      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-admin123}
-      POSTGRES_DB: ${POSTGRES_DB:-exposeduc_db}
-    ports:
-      - "5432:5432"
+      - POSTGRES_DB=${POSTGRES_DB}
+      - POSTGRES_USER=${POSTGRES_USER}
+      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD}
+    deploy:
+      replicas: 1
+      placement:
+        constraints: [ node.role == manager ] # Recomendado para persistência
+      restart_policy:
+        condition: on-failure
     volumes:
-      - pgdata:/var/lib/postgresql/data
+      - exposeduc_postgres_data:/var/lib/postgresql/data
+    networks:
+      - interna_network_expo
     healthcheck:
-      test: [ "CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-admin} -d ${POSTGRES_DB:-exposeduc_db}" ]
-      interval: 5s
+      test: [ "CMD-SHELL", "pg_isready -U ${POSTGRES_USER} -d ${POSTGRES_DB}" ]
+      interval: 10s
       timeout: 5s
       retries: 5
-    networks:
-      - exposeduc-network
 
 volumes:
-  pgdata:
+  exposeduc_postgres_data:
 
 
 networks:
-  exposeduc-network:
-    driver: bridge
+  # Rede pública existente no Swarm (onde o Traefik está)
+  SimpliSoft:
+    external: true
+  # Rede interna para comunicação App <-> DB
+  interna_network_expo:
+    driver: overlay
+    attachable: true
